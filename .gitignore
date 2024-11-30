@@ -1,0 +1,10 @@
+# Ignore NetBeans project files
+.nbproject/
+*.user
+*.class
+
+config.properties
+
+# Ignore configuration files that contain sensitive information
+config.properties
+*.log
