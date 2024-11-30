@@ -5,6 +5,7 @@
 
 package finalproject;
 
+import java.io.IOException;
 import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,13 +27,18 @@ public class Enrollment extends javax.swing.JFrame {
     }
     
     public void populateCombo() throws SQLException, ClassNotFoundException {
-    final String url = "jdbc:mysql://localhost:8889/FinalProject";
-    final String user = "root";
-    final String password = "root";
     final String QUERY = "SELECT * FROM Schools";
 
-    try (java.sql.Connection conn = FinalProject.getConnection();
-         Statement s = conn.createStatement();
+    try (Connection conn = FinalProject.getConnection()) {
+        // Check if the connection is null and handle it accordingly
+        if (conn == null) {
+            System.err.println("Failed to connect to the database.");
+            JOptionPane.showMessageDialog(this, "Failed to connect to the database.");
+            return; // Exit the method if connection is null
+        }
+
+
+    try (Statement s = conn.createStatement();
          ResultSet rs = s.executeQuery(QUERY)) {
 
         boolean hasRows = false; // To check if the result set has any rows
@@ -51,8 +57,10 @@ public class Enrollment extends javax.swing.JFrame {
         Logger.getLogger(Enrollment.class.getName()).log(Level.SEVERE, null, ex);
         JOptionPane.showMessageDialog(this, "Error loading schools: " + ex.getMessage());
     }
-}
-
+    }       catch (IOException ex) {
+            Logger.getLogger(Enrollment.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     
     /** This method is called from within the constructor to
@@ -255,7 +263,9 @@ public class Enrollment extends javax.swing.JFrame {
                 
             }catch (SQLException | ClassNotFoundException ex) {
                 Logger.getLogger(SignUp.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            }       catch (IOException ex) {
+                        Logger.getLogger(Enrollment.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }else{
                 }
         }

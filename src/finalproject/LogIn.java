@@ -4,11 +4,14 @@
  */
 package finalproject;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import java.sql.ResultSet;
+import java.sql.PreparedStatement;
+
 
 /**
  *
@@ -122,36 +125,48 @@ public class LogIn extends javax.swing.JFrame {
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
         String username = usernametf.getText();
         String password = passwordtf.getText();
-        if (username.isBlank()|| password.isBlank()) {
+
+        if (username.isBlank() || password.isBlank()) {
             JOptionPane.showMessageDialog(null, "Username or Password empty");
         } else {
             try {
+                // Get a connection from FinalProject's getConnection method
                 java.sql.Connection conn = FinalProject.getConnection();
-                java.sql.Statement state = conn.createStatement();
 
-                String sql = "SELECT * FROM SignUp WHERE Username = '" + username + "' AND Password ='" + password + "'";
-                state.execute(sql);
+                // Use a prepared statement to prevent SQL injection
+                String sql = "SELECT * FROM SignUp WHERE Username = ? AND Password = ?";
 
-                ResultSet rs = state.executeQuery(sql);
+                try ( PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    // Set the username and password parameters
+                    stmt.setString(1, username);
+                    stmt.setString(2, password);
 
-                if (rs.next()) {
-                    JOptionPane.showMessageDialog(null, "Login successful");
-                    if ("nis123".equals(username) && "123".equals(password)) {
-                        new AdminMainPage().setVisible(true);
-                    }else {
-                        new MainPage().setVisible(true);
+                    // Execute the query to get the result set
+                    ResultSet rs = stmt.executeQuery();
+
+                    // If the user is found in the database, log in successfully
+                    if (rs.next()) {
+                        JOptionPane.showMessageDialog(null, "Login successful");
+
+                        // If the username is "nis123", show the Admin page, else show the Main page
+                        if ("nis123".equals(username)) {
+                            new AdminMainPage().setVisible(true);
+                        } else {
+                            new MainPage().setVisible(true);
+                        }
+                        this.dispose();
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Wrong Username or Password. Please try again.");
                     }
-                    this.dispose();
-                } else {
-                    JOptionPane.showMessageDialog(null, "Wrong Username or Password \nPlease try again");
                 }
-            } catch (SQLException ex) {
-                Logger.getLogger(LogIn.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(LogIn.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        }
+    } catch (SQLException ex) {
+        Logger.getLogger(LogIn.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (ClassNotFoundException ex) {
+        Logger.getLogger(LogIn.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (IOException ex) {
+        Logger.getLogger(LogIn.class.getName()).log(Level.SEVERE, null, ex);
+    }
+}
 
     }//GEN-LAST:event_jButton1MouseClicked
 

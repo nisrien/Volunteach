@@ -4,6 +4,7 @@
  */
 package finalproject;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -56,7 +57,9 @@ public class MainPage extends javax.swing.JFrame {
     jTable1.setModel(TableModel);
     }catch (SQLException e) {
         System.out.println("error:" + e);  
-    }
+    }   catch (IOException ex) {
+            Logger.getLogger(MainPage.class.getName()).log(Level.SEVERE, null, ex);
+        }
      
     }
     public void displayName() throws ClassNotFoundException {
@@ -76,7 +79,9 @@ public class MainPage extends javax.swing.JFrame {
     
     }catch (SQLException e) {
         System.out.println("error:" + e);  
-    }
+    }   catch (IOException ex) {
+            Logger.getLogger(MainPage.class.getName()).log(Level.SEVERE, null, ex);
+        }
 }
     
 

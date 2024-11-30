@@ -4,8 +4,12 @@
  */
 package finalproject;
 
-import java.sql.ResultSet;
+import java.io.FileNotFoundException;
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
@@ -25,44 +29,45 @@ public class AdminEnrollment extends javax.swing.JFrame {
         populateTable();
     }
     
-    public void populateTable() throws ClassNotFoundException { 
-        jTable1.getTableHeader().setOpaque(false);
-        
-    final String url = "jdbc:mysql://localhost:8889/FinalProject";
-    final String user = "root";
-    final String password = "root";
+    public void populateTable() {
+    jTable1.getTableHeader().setOpaque(false);
+
     final String QUERY = "SELECT * FROM Enrollment";
     
-     try{
-    java.sql.Connection conn = FinalProject.getConnection();
-    java.sql.Statement state = conn.createStatement();
-                
-    String sql = "SELECT * FROM Enrollment";
-    state.execute(sql);
-                
-    ResultSet rs = state.executeQuery(sql);
-    
-    String column[]= {"FirstName","LastName", "Email", "PhoneNumber", "School", "Subject"};  
-    DefaultTableModel TableModel = new DefaultTableModel(column, 0);
-    
-    while (rs.next()){
-    String first = rs.getString("FirstName");
-    String last = rs.getString("LastName");
-    String email = rs.getString("Email");
-    String phone = rs.getString("PhoneNumber");
-    String school = rs.getString("School");
-    String subject = rs.getString("Subject");
-    
-    Object[] data = {first, last, email, phone, school, subject};
-    TableModel.addRow(data);
-    }
-    jTable1.setModel(TableModel);
-    }catch (SQLException e) {
-        System.out.println("error:" + e);  
-    }
-    }
+    try (Connection conn = FinalProject.getConnection()) { // Using getConnection from FinalProject class
+        if (conn == null) {
+            System.err.println("Failed to connect to the database.");
+            return; // Exit the method if connection is null
+        }
 
-    
+        try (Statement state = conn.createStatement(); ResultSet rs = state.executeQuery(QUERY)) {
+            String[] column = {"FirstName", "LastName", "Email", "PhoneNumber", "School", "Subject"};
+            DefaultTableModel TableModel = new DefaultTableModel(column, 0);
+
+            while (rs.next()) {
+                String first = rs.getString("FirstName");
+                String last = rs.getString("LastName");
+                String email = rs.getString("Email");
+                String phone = rs.getString("PhoneNumber");
+                String school = rs.getString("School");
+                String subject = rs.getString("Subject");
+
+                Object[] data = {first, last, email, phone, school, subject};
+                TableModel.addRow(data);
+            }
+            jTable1.setModel(TableModel);
+
+        } catch (SQLException e) {
+            System.err.println("Error while fetching data: " + e.getMessage());
+        }
+    } catch (SQLException e) {
+        System.err.println("Database connection error: " + e.getMessage());
+    }   catch (IOException ex) {
+            Logger.getLogger(AdminEnrollment.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(AdminEnrollment.class.getName()).log(Level.SEVERE, null, ex);
+        }
+}
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -139,8 +144,10 @@ public class AdminEnrollment extends javax.swing.JFrame {
         try {
             new AdminMainPage().setVisible(true);
             this.dispose();
-        } catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException | IOException ex) {
             Logger.getLogger(AdminMainPage.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminEnrollment.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }//GEN-LAST:event_jButton4MouseClicked

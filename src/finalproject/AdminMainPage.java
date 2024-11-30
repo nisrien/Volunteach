@@ -5,6 +5,8 @@
 package finalproject;
 
 import java.awt.HeadlessException;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
@@ -13,6 +15,8 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import java.sql.Statement;
+import java.sql.Connection;
+
 
 /**
  *
@@ -24,42 +28,40 @@ public class AdminMainPage extends javax.swing.JFrame {
      * Creates new form AdminMainPage
      * @throws java.lang.ClassNotFoundException
      */
-    public AdminMainPage() throws ClassNotFoundException {
+    public AdminMainPage() throws ClassNotFoundException, IOException, FileNotFoundException, SQLException {
         initComponents();       
         populateTable();
     }
-public void populateTable() throws ClassNotFoundException { 
-        jTable1.getTableHeader().setOpaque(false);
-        
-    final String url = "jdbc:mysql://localhost:8889/FinalProject";
-    final String user = "root";
-    final String password = "root";
-    final String QUERY = "SELECT * FROM Schools";
-    
-     try{
-    java.sql.Connection conn = FinalProject.getConnection();
-    java.sql.Statement state = conn.createStatement();
-                
-    String sql = "SELECT * FROM Schools";
-    state.execute(sql);
-                
-    ResultSet rs = state.executeQuery(sql);
-    
-    String column[]= {"SchoolName","Location", "EducationalStage"};  
-    DefaultTableModel TableModel = new DefaultTableModel(column, 0);
-    
-    while (rs.next()){
-    String schoolname = rs.getString("SchoolName");
-    String location = rs.getString("Location");
-    String edstage = rs.getString("EducationalStage");
-    
-    Object[] data = {schoolname, location, edstage};
-    TableModel.addRow(data);
-    }
-    jTable1.setModel(TableModel);
-    }catch (SQLException e) {
-        System.out.println("error:" + e);  
-    }
+public void populateTable() throws IOException, FileNotFoundException, ClassNotFoundException, SQLException {
+    jTable1.getTableHeader().setOpaque(false);
+
+    try (Connection conn = FinalProject.getConnection()) {
+        if (conn == null) {
+            System.err.println("Failed to connect to the database.");
+            return;
+        }
+
+        String sql = "SELECT * FROM Schools";
+        try (Statement state = conn.createStatement(); ResultSet rs = state.executeQuery(sql)) {
+            // Columns for the table
+            String[] column = {"SchoolName", "Location", "EducationalStage"};
+            DefaultTableModel TableModel = new DefaultTableModel(column, 0);
+
+            while (rs.next()) {
+                String schoolname = rs.getString("SchoolName");
+                String location = rs.getString("Location");
+                String edstage = rs.getString("EducationalStage");
+
+                Object[] data = {schoolname, location, edstage};
+                TableModel.addRow(data);
+            }
+
+            jTable1.setModel(TableModel);
+
+        } catch (SQLException e) {
+            System.err.println("Error while fetching data: " + e.getMessage());
+        }
+        }
 }
     
     /**
@@ -245,15 +247,14 @@ public void populateTable() throws ClassNotFoundException {
                 prep.execute();
                 JOptionPane.showMessageDialog(null, "Data inserted successfully");
                 
-               // java.sql.Statement state = conn.createStatement();
-               // state = conn.createStatement ("UPDATE Schools SET SchoolName = '" + schoolname + "', Location = '" + location + "', EducationalStage = '" + edstage + "' WHERE company = '"+company+"'");
-                
                 populateTable();
                 
             } catch (SQLException ex) {
                 Logger.getLogger(SignUp.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(SignUp.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(AdminMainPage.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         
@@ -324,6 +325,10 @@ public void populateTable() throws ClassNotFoundException {
         
     } catch (HeadlessException | SQLException e) {
         System.out.println(e);
+        } catch (IOException ex) {
+            Logger.getLogger(AdminMainPage.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(AdminMainPage.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButton3MouseClicked
 
@@ -391,6 +396,10 @@ public void populateTable() throws ClassNotFoundException {
                 try {
                     new AdminMainPage().setVisible(true);
                 } catch (ClassNotFoundException ex) {
+                    Logger.getLogger(AdminMainPage.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(AdminMainPage.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (SQLException ex) {
                     Logger.getLogger(AdminMainPage.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
